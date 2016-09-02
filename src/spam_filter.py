@@ -21,23 +21,36 @@ df['html'] = map(hasHTML, df.text)
 
 print "Lei json"
 
-spam_txt = [re.sub('<[^<]+?>', '', spam) for spam in spam_txt]
-spam_txt = [w for w in re.findall(r'\w+', spam) for spam in spam_txt]
-print "Limpie spam"
-ham_txt = [re.sub('<[^<]+?>', '', ham) for ham in ham_txt]
-ham_txt = [w for w in re.findall(r'\w+', ham) for ham in ham_txt]
-print "Limpie ham"
+def ranking(mails, k):
+  #Limpio etiquetas html
+  mails = [re.sub('<[^<]+?>', '', mail) for mail in mails]
+  #Hago una lista con todas las palabras que aparecen (con repeticiones)
+  #sin signos de puntuacion ni chirimbolos raros 
+  mailWords = []
+  for mail in mails:
+    for w in re.findall(r'[a-z]+', mail):
+      mailWords.append(w)
 
-spamWords = Counter(spam_txt)
-hamWords = Counter(ham_txt)
+  countWords = Counter(mailWords)
 
-print "Conte"
+  return countWords.most_common(k)
 
-print hamWords.most_common(50)
-print spamWords.most_common(50)
+def setDifference(spam, ham):
+  intersec = []
+  for w1 in spam:
+    for w2 in ham:
+      if w1[0] == w2[0]:
+        intersec.append(w1)
+        break
+  return [x for x in spam if x not in intersec]    
 
+'''
+Esto anda bien
+spam_words = ranking(spam_txt[0:20], 100)
+ham_words = ranking(ham_txt[0:20], 100)
+print setDifference(spam_words, ham_words)
 sys.exit(0)
-
+'''
 # Preparo data para clasificar
 X = df[['html']].values
 y = df['class']
