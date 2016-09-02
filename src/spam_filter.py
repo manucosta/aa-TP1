@@ -42,7 +42,18 @@ def setDifference(spam, ham):
       if w1[0] == w2[0]:
         intersec.append(w1)
         break
-  return [x for x in spam if x not in intersec]    
+  return [x for x in spam if x not in intersec]   
+
+def occurrencesOf(text, word, ocurr):
+  return text.count(word) >=  (float(ocurr)/len(spam_txt))
+
+spam = ranking(spam_txt, 100)
+ham = ranking(ham_txt, 100)
+words = []
+for word, ocurr in setDifference(spam, ham):
+  if word == 'html': continue
+  df[word] = map(lambda x: occurrencesOf(x, word, ocurr), df.text)
+  words.append(word)
 
 '''
 Esto anda bien
@@ -52,7 +63,7 @@ print setDifference(spam_words, ham_words)
 sys.exit(0)
 '''
 # Preparo data para clasificar
-X = df[['html']].values
+X = df[[words.append('html')]].values
 y = df['class']
 
 # Elijo mi clasificador.
