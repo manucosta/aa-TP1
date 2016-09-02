@@ -22,10 +22,10 @@ df['html'] = map(hasHTML, df.text)
 print "Lei json"
 
 spam_txt = [re.sub('<[^<]+?>', '', spam) for spam in spam_txt]
-spam_txt = [re.findall(r'\w+', spam) for spam in spam_txt]
+spam_txt = [w for w in re.findall(r'\w+', spam) for spam in spam_txt]
 print "Limpie spam"
 ham_txt = [re.sub('<[^<]+?>', '', ham) for ham in ham_txt]
-ham_txt = [re.findall(r'\w+', ham) for ham in ham_txt]
+ham_txt = [w for w in re.findall(r'\w+', ham) for ham in ham_txt]
 print "Limpie ham"
 
 spamWords = Counter(spam_txt)
