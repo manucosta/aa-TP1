@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*- 
 import json
 import numpy as np
 import pandas as pd
@@ -7,6 +8,8 @@ from sklearn.tree import DecisionTreeClassifier
 from sklearn.cross_validation import cross_val_score
 
 import sys
+
+###Consejo: correr esto en una máquina con >4GB de memoria
 
 # Leo los mails (poner los paths correctos).
 ham_txt= json.load(open('../dataset_json/ham_dev.json'))
@@ -36,43 +39,41 @@ def ranking(mails, k):
   return countWords.most_common(k)
 
 def setDifference(spam, ham):
-  intersec = []
+  diff = []
   for w1 in spam:
+    counter = 0
     for w2 in ham:
       if w1[0] == w2[0]:
-        intersec.append(w1)
         break
-  return [x for x in spam if x not in intersec]   
+      counter += 1
+    if counter == len(ham):
+      diff.append(w1)
+    counter = 0
+  return diff
 
-def occurrencesOf(text, word, ocurr):
-  return text.count(word) >=  (float(ocurr)/len(spam_txt))
+def countGreaterThan(text, word, threshold):
+  return text.count(word) >=  threshold
 
-spam = ranking(spam_txt, 100)
-ham = ranking(ham_txt, 100)
+spam_words = ranking(spam_txt, 400)
+ham_words = ranking(ham_txt, 400)
 words = []
-for word, ocurr in setDifference(spam, ham):
+for word, occur in setDifference(spam_words, ham_words):
   if word == 'html': continue
-  df[word] = map(lambda x: occurrencesOf(x, word, ocurr), df.text)
+  df[word] = map(lambda x: countGreaterThan(x, word, 1), df.text)
   words.append(word)
 
-'''
-Esto anda bien
-spam_words = ranking(spam_txt[0:20], 100)
-ham_words = ranking(ham_txt[0:20], 100)
-print setDifference(spam_words, ham_words)
-sys.exit(0)
-'''
+
+words.append('html')
 # Preparo data para clasificar
-X = df[[words.append('html')]].values
+X = df[words].values
 y = df['class']
 
 # Elijo mi clasificador.
-clf = DecisionTreeClassifier()
+clf = DecisionTreeClassifier(criterion='entropy')
 
 # Ejecuto el clasificador entrenando con un esquema de cross validation
 # de 10 folds.
 res = cross_val_score(clf, X, y, cv=10)
 print np.mean(res), np.std(res)
-# Clasificando solo por html:
-# Dataset viejo: 0.924360236207 0.00416089614975
-# Dataset nuevo: 0.752233333333 0.144342044472
+# Actualmente da algo como
+# 0.978766666667 0.0161049375145
