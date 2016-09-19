@@ -3,9 +3,9 @@ import json
 import numpy as np
 import pandas as pd
 import re
-from collections import Counter
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.cross_validation import cross_val_score
+from sklearn.feature_extraction.text import CountVectorizer
 
 import sys
 
@@ -15,95 +15,78 @@ import sys
 ham_txt= json.load(open('../dataset_json/ham_dev.json'))
 spam_txt= json.load(open('../dataset_json/spam_dev.json'))
 
+# Pongo todos los mails en minusculas
+ham_txt = map(lambda x: x.lower(), ham_txt)
+spam_txt = map(lambda x: x.lower(), spam_txt)
+
+# Armo el data frame
 df = pd.DataFrame(ham_txt+spam_txt, columns=['text'])
 df['class'] = ['ham' for _ in range(len(ham_txt))]+['spam' for _ in range(len(spam_txt))]
 
+print "Lei json y arme data frame"
+
+# Extraigo atributos simples
+# Agrego feature que clasifica los mails segun tienen o no html
 def hasHTML(txt): return "</html>" in txt
+df['hasHTML'] = map(hasHTML, df.text)
 
-df['html'] = map(hasHTML, df.text)
+#) Agrego feature que clasifica los mails segun tienen o no subject
+def hasSubject(txt): return "subject:" in txt
+df['hasSubj'] = map(hasSubject, df.text)
 
-print "Lei json"
+# Longitud del mail.
+df['len'] = map(len, df.text)
 
-def filtrarMugresGenerico(mailList, bodys, subjects, froms, tos):
-  for mail in mailList:
-    mail_lines = mail.split('\n')
-    for line_index in range(len(mail_lines)):
-      line = mail_lines[line_index]
-      if line[:5] == "from:":
-        froms.append(line[6:])
-      elif line[:8] == "subject:":
-        subjects.append(line[9:])
-      elif line[:3] == "to:":
-        tos.append(line[4:])
-      elif line == "\r":
-        bodys.append(mail_lines[line_index:])
-        break
+# Cantidad de espacios en el mail.
+def count_spaces(txt): return txt.count(" ")
+df['count_spaces'] = map(count_spaces, df.text)
 
-def ranking(mails, k):
-  #Limpio etiquetas html
-  mails = [re.sub('<[^<]+?>', '', " ".join(mail)) for mail in mails]
-  #Hago una lista con todas las palabras que aparecen (con repeticiones)
-  #sin signos de puntuacion ni chirimbolos raros 
-  mailWords = []
-  for mail in mails:
-    for w in re.findall(r'[a-z]+', mail):
-      mailWords.append(w)
+'''
+def strangeChars(txt):
+  print "s"
+  for c in txt:
+    if(c in [u'á',u'é',u'í',u'ó',u'ú',u'ñ',
+             u'ä',u'ë',u'ï',u'ö',u'ü'] or
+        ord(c) in range(187, 243)):
+      return True
+  return False
+df['str_chars'] = map(strangeChars, df.text)
+'''
 
-  countWords = Counter(mailWords)
+print "Clasifique por atributos simples"
 
-  return countWords.most_common(k)
+#Cargo el vocabulario
+vocab_file = open("../vocab.txt")
+vocab = []
 
-def setDifference(spam, ham):
-  diff = []
-  for w1 in spam:
-    counter = 0
-    for w2 in ham:
-      if w1[0] == w2[0]:
-        break
-      counter += 1
-    if counter == len(ham):
-      diff.append(w1)
-    counter = 0
-  return diff
+for line in vocab_file:
+  vocab.append(line.strip("\n"))
 
-def countGreaterThan(text, word, threshold):
-  return text.count(word) >=  threshold
+#Armo la matriz de ocurrencias (notar que es una representación para
+#matriz esparsa, asi que ocupa relativamente poco)
+vectorizer = CountVectorizer(token_pattern=r'[a-z]+', vocabulary=vocab, lowercase=False)
+print "Prepare vectorizer"
+df_matrix = vectorizer.transform(df.text)
+print "Arme matriz"
 
+tags = map(lambda x: "tag-" + x, vectorizer.get_feature_names())
+for i in xrange(len(tags)):
+  df[tags[i]] = df_matrix[i]
+print "Etiquete"
 
-body_spam = []
-subjetc_spam = []
-from_spam = []
-to_spam = []
+tags.append("hasHTML")
+tags.append("hasSubj")
+tags.append("len")
+tags.append("count_spaces")
 
-body_ham = []
-subjetc_ham = []
-from_ham = []
-to_ham = []
-
-filtrarMugresGenerico(spam_txt, body_spam, subjetc_spam, from_spam, to_spam)
-filtrarMugresGenerico(ham_txt, body_ham, subjetc_ham, from_ham, to_ham)
-
-spam_words = ranking(body_spam, 400)
-ham_words = ranking(body_ham, 400)
-words = []
-for word, occur in setDifference(spam_words, ham_words):
-  if word == 'html': continue
-  elif word == 'text': continue
-  df[word] = map(lambda x: countGreaterThan(x, word, 1), df.text)
-  words.append(word)
-
-
-words.append('html')
-# Preparo data para clasificar
-X = df[words].values
-y = df['class']
-
+print "Empiezo entrenamiento"
 # Elijo mi clasificador.
-clf = DecisionTreeClassifier(criterion='entropy')
+clf = DecisionTreeClassifier(criterion='entropy', max_depth=300)
 
 # Ejecuto el clasificador entrenando con un esquema de cross validation
 # de 10 folds.
-res = cross_val_score(clf, X, y, cv=10)
+res = cross_val_score(clf, df_matrix, df['class'], cv=10, n_jobs=1)
 print np.mean(res), np.std(res)
+
 # Actualmente da algo como
-# 0.978766666667 0.0161049375145
+# 0.990988888889 0.0061120100349
