@@ -23,6 +23,9 @@ spam_txt = map(lambda x: x.lower(), spam_txt)
 df = pd.DataFrame(ham_txt+spam_txt, columns=['text'])
 df['class'] = ['ham' for _ in range(len(ham_txt))]+['spam' for _ in range(len(spam_txt))]
 
+ham_txt = 0
+spam_txt = 0
+
 print "Lei json y arme data frame"
 
 # Extraigo atributos simples
@@ -41,17 +44,12 @@ df['len'] = map(len, df.text)
 def count_spaces(txt): return txt.count(" ")
 df['count_spaces'] = map(count_spaces, df.text)
 
-'''
-def strangeChars(txt):
-  print "s"
-  for c in txt:
-    if(c in [u'á',u'é',u'í',u'ó',u'ú',u'ñ',
-             u'ä',u'ë',u'ï',u'ö',u'ü'] or
-        ord(c) in range(187, 243)):
-      return True
-  return False
-df['str_chars'] = map(strangeChars, df.text)
-'''
+def extract_body(text):
+  text_lines = text.split('\n')
+  for line_index in range(len(text_lines)):
+      line = text_lines[line_index]
+      if line == '\r' or line == '':
+        return " ".join(text_lines[line_index+1:])
 
 print "Clasifique por atributos simples"
 
@@ -85,8 +83,8 @@ clf = DecisionTreeClassifier(criterion='entropy', max_depth=300)
 
 # Ejecuto el clasificador entrenando con un esquema de cross validation
 # de 10 folds.
-res = cross_val_score(clf, df_matrix, df['class'], cv=10, n_jobs=1)
+res = cross_val_score(clf, df_matrix, df['class'], cv=10, n_jobs=2)
 print np.mean(res), np.std(res)
 
 # Actualmente da algo como
-# 0.990988888889 0.0061120100349
+# 0.992347222222 0.00354504196461
