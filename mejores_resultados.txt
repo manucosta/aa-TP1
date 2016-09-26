@@ -1,0 +1,24 @@
+Decision Tree (max_leaf_nodes != None anula max_depth)
+{'max_features': None, 'max_leaf_nodes': 100, 'min_samples_split': 2, 'criterion': 'gini'}
+0.992519162723
+***********************
+Gaussian Naive Bayes
+{}
+0.564002009787
+***********************
+Multinomial Naive Bayes
+{'alpha': 0.25, 'fit_prior': True}
+0.624500833551
+***********************
+Bernoulli Naive Bayes
+{'binarize': 0.0, 'alpha': 0.25, 'fit_prior': False}
+0.942918912295
+***********************
+K Nearest Neighbors
+{'n_neighbors': 1, 'weights': 'uniform', 'leaf_size': 15, 'algorithm': 'kd_tree'}
+0.919134264754
+***********************
+Random Forest
+{'max_features': 0.5, 'max_leaf_nodes': None, 'min_samples_split': 4, 'criterion': 'gini', 'n_estimators': 20}
+0.996898685035
+***********************
