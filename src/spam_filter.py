@@ -93,6 +93,10 @@ clasifs = [dectree, gnb, mnb, bnb, neigh, supvecmac, ranfor]
 params_grid = [dectree_param_grid, gnb_param_grid, mnb_param_grid, bnb_param_grid, neigh_param_grid, supvecmac_param_grid, ranfor_param_grid]
 names = ["Decision Tree", "Gaussian Naive Bayes", "Multinomial Naive Bayes", "Bernoulli Naive Bayes", "K Nearest Neighbors", "Support Vector Machines", "Random Forest"]
 
+clasifs = [dectree, gnb, neigh, supvecmac, ranfor]
+params_grid = [dectree_param_grid, gnb_param_grid, neigh_param_grid, supvecmac_param_grid, ranfor_param_grid]
+names = ["Decision Tree", "Gaussian Naive Bayes", "K Nearest Neighbors", "Support Vector Machines", "Random Forest"]
+
 # Definimos F-Beta score con Beta=0.5
 # (favorecemos precision sobre recall)
 f05_scorer = make_scorer(fbeta_score, beta=0.5)
