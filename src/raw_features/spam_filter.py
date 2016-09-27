@@ -1,4 +1,4 @@
-from utilities import *
+from ...utilities import *
 from scipy.sparse import coo_matrix, hstack
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.cross_validation import cross_val_score
@@ -117,11 +117,3 @@ for (clf, param_grid, name) in zip(clasifs, params_grid, names):
   #for params, mean_score, scores in grid_search.grid_scores_:
   #	print("%0.3f (+/-%0.3f) for %f" % (mean_score, scores.std(), params))
   print grid_search.best_score_
-
-'''
-print "Empiezo entrenamiento"
-# Defino los clasificadores
-clf = DecisionTreeClassifier(max_depth=100)
-res = cross_val_score(clf, X, y, cv=10, n_jobs=1, scoring=f05_scorer)
-print np.mean(res), np.std(res)
-'''
