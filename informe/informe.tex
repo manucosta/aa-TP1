@@ -25,6 +25,8 @@
 \usepackage{wrapfig}
 \usepackage{caption}
 
+\usepackage{endnotes}
+
 
 %Formato de los links
 \usepackage{hyperref}
@@ -35,6 +37,8 @@
   citecolor   = red %Colour of citations
 }
 
+\renewcommand{\notesname}{Bibliografía}
+\renewcommand{\theendnote}{\Roman{endnote}}
 
 %%fancyhdr
 \pagestyle{fancy}
@@ -50,7 +54,7 @@
 \titulo{Trabajo Práctico Número 1: Spam Filter}
 %\subtitulo{}
 \grupo{}
-\integrante{Abdala, Leila Yasmín}{}{abdalaleila@gmail.com}
+\integrante{Abdala, Leila Yasmín}{950/12}{abdalaleila@gmail.com}
 \integrante{Costa, Manuel José Joaquín}{035/14}{manucos94@gmail.com}
 \integrante{Bertero, Federico}{}{federico.bertero@gmail.com}
 
@@ -62,12 +66,138 @@
 
 \section{Extracción de atributos}
 
+Para esta primer etapa planteamos dos tipos de atributos, automáticos y no automáticos. Los atributos no automáticos son 4. HTML, indica si un mail 
+contiene código HTML. SUBJ, indica si un mail contiene el campo subject. LEN, retorna la cantidad de caracteres del mail. Y finalmente SPACES, 
+cuenta la cantidad de espacios `` '' que parecen en el mail.
+
+Por otro lado, los atributos automáticos se crean haciendo uso de la librería SKLearn\endnote{http://scikit-learn.org/stable/modules/feature\_extraction.html}.
+Con la misma, creamos a partir de la base de datos un vocabulario de palabras
+frecuentes, usando como métrica la cantidad de apariciones de cada una de ellas en ese mismo mail. Con
+el fin de eliminar las palabras repetidas en los headers y los conectores de lenguaje (por ejemplo The, He, Why, To, ect.), hicimos la suposición de que no es 
+posible que una $keyword$ aparezca en mas del 60\% de los mails\footnote{Llegamos a este porcentaje mediante experimentación manual 
+que no agregamos porque consideramos que no aporta al objetivo de este informe.}. 
+
+Motivados por el fuerte impacto del código HTML en la extracción de atributos automáticos, nos planteamos implementar un procedimiento para preprocesar los datos de entrada.
+Finalmente, dado que el elevado tiempo de computo que requería esta tarea, que las herramientas que encontramos para quitar el código HTML
+presentaban errores en algunos casos y, la despreciable diferencia hallada entre el accuracy de los mails que fueron preprocesados y los que no, es que se 
+determino omitir esta tarea.
+
 \section{Modelos}
+
+
+A continuación, listamos los clasificadores usados y los parámetros que probamos sobre cada uno de ellos. La selección de los mismos fue realizada con el objetivo de explorar lo mas 
+posible espacio de búsqueda y esta basada en algunos papers y artículos\endnote{L. Breiman, J. Friedman, R. Olshen, and C. Stone, 
+``Classification and Regression Trees'', Wadsworth, Belmont, CA, 1984.
+
+L. Breiman, and A. Cutler, ``Random Forests'', http://www.stat.berkeley.edu/\~breiman/RandomForests/cc\_home.htm
+
+V. Metsis, I. Androutsopoulos and G. Paliouras (2006). Spam filtering with Naive Bayes – Which Naive Bayes? 3rd Conf. on Email and Anti-Spam (CEAS).
+
+``Automatic Capacity Tuning of Very Large VC\-dimension Classifiers'' I Guyon, B Boser, V Vapnik - Advances in neural information processing 1993.
+} leidos.
+
+\begin{enumerate}
+ \item Decision Tree: Los parámetros usados fueron max\_depth con los valores: None, 3, 10, 100, 300. max\_features con los valores: None, 1, 3, 10.
+ max\_leaf\_nodes con los valores: None, 25, 50, 100, 1000. min\_samples\_split con los valores: 2, 3, 4, 10. Y criterion con los valores: ``gini'' y ``entropy''.
+
+\item Gaussian Naive Bayes: Probamos sin variar los parámetros. (...) (tiene parametros??)
+
+\item Multinomial Naive Bayes: alpha = 0.25 fit\_prior = True
+
+\item Bernoulli Naive Bayes: binarize = 0.0 alpha = 0.25 fit\_prior = False
+
+\item K Nearest Neighbors: Los parámetros usados fueron n\_neighbors con los valores: 1, 3, 5, 7, 10. weights con los valores: \textquoteleft distance' y \textquoteleft uniform'.
+Y algorithm con los valores: \textquoteleft ball\_tree', \textquoteleft kd\_tree', \textquoteleft brute'.
+
+\item Support Vector Machines: Los parámetros se separaron en dos casos para este clasificador. Cuando definimos kernel con el valor \textquoteleft linear' usamos C con los valores: 
+1, 10, 100, 1000. Para kernel con el valor \textquoteleft rbf' definimos C con los valores: 1, 10, 100, 1000 y gamma con los valores: 0.001, 0.0001, 0.1, 0.2, 0.5, 1.0.
+
+\item Random Forest: Los parámetros usados fueron max\_depth con los valores: None, 3, 10, 100. max\_features con los valores: None, 1, 3, 10, 100. 
+min\_samples\_split con los valores: 1, 3, 10, 100. min\_samples\_leaf con los valores: 1, 3, 10, 100. bootstrap con los valores: True y False.
+Y criterion con los valores: ``gini'' y ``entropy''.
+
+\end{enumerate}
 
 \section{Reducción de dimensionalidad}
 
+\subsection{Seleccion de atributos}
+
+\subsection{Transformacion de atributos}
+
 \section{Resultados}
 
+Para evaluar los métodos usamos como métrica la media armónica\footnote{$f_{0,5}$} con $\beta = 0,5$ ya que deseamos enfatizar la precisión. Esto es porque, al estar clasificando Spam, se considera un 
+grave error que un mail Ham sea clasificado como Spam\footnote{false positives} mientras que clasificar un Spam como Ham es aceptable\footnote{true negative}.
+
+A continuación, listamos los parámetros para los cuales obtuvimos los mejores resultados por cada clasificador. Para todos los clasificadores se usan los mismos
+atributos, que aparecen descriptos en la sección 1. Cabe destacar que se considero otro set de atributos, pero dado que obtuvo resultados peores en todos los casos, 
+fue descartado. Este consideraba como métrica la aparición de una palabra en el mail, usando para ello un vocabulario extraído de manera no 
+automática\footnote{Llamamos no automático a todo proceso realizado íntegramente por nosotros, es decir, sin recurrir a librerías tales como SKLearn.} y 
+clasificando como relevantes las $\lambda$ palabras con mas apariciones en la base de datos de Spam.
+
+\paragraph{Decision Tree} 
+\begin{itemize}
+ \item max\_features = None
+ \item max\_leaf\_nodes = 100 
+ \item min\_samples\_split = 2 
+ \item criterion = gini
+\end{itemize}
+
+Obtuvimos $f_{0,5} = 0.992519162723$.
+
+\paragraph{Gaussian Naive Bayes}
+
+Obtuvimos $f_{0,5} = 0.564002009787$.
+
+\paragraph{Multinomial Naive Bayes}
+\begin{itemize}
+ \item alpha = 0.25
+ \item fit\_prior = True
+\end{itemize}
+
+Obtuvimos $f_{0,5} = 0.624500833551$.
+
+\paragraph{Bernoulli Naive Bayes}
+\begin{itemize}
+ \item binarize = 0.0
+ \item alpha = 0.25
+ \item fit\_prior = False
+\end{itemize}
+
+Obtuvimos $f_{0,5} = 0.942918912295$.
+
+\paragraph{K Nearest Neighbors}
+\begin{itemize}
+ \item n\_neighbors = 1
+ \item weights = uniform
+ \item leaf\_size = 15
+ \item algorithm = kd\_tree
+\end{itemize}
+
+Obtuvimos $f_{0,5} = 0.919134264754$.
+
+\paragraph{Support Vector Machines}
+\begin{itemize}
+ \item kernel = rbf
+ \item C = 1
+ \item gamma = 1.0
+\end{itemize}
+
+Obtuvimos $f_{0,5} = 0.838130487534$.
+
+\paragraph{Random Forest}
+\begin{itemize}
+ \item max\_features = 0.5
+ \item max\_leaf\_nodes = None
+ \item min\_samples\_split = 4
+ \item criterion = gini
+ \item n\_estimators = 20
+\end{itemize}
+
+Obtuvimos $f_{0,5} = 0.996898685035$.
+
 \section{Discusión}
+
+\theendnotes
 
 \end{document}
