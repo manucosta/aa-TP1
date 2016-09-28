@@ -4,7 +4,8 @@ La entrega contiene el informe en PDF y la carpeta código organizada de la sigu
 
 * La carpeta select_features contiene los archivos correspondientes al entrenamiento de los clasificadores con reducción de dimensionalidad (usando K-Best y PCA), sobre el set de desarrollo.
 
-* La carpeta test contiene los archivos correspondientes a la evaluación de los clasificadores obtenidos sobre el set de test.
+* La carpeta test contiene los archivos correspondientes a la evaluación (sobre el set de test) de los clasificadores obtenidos tras entrenar con el 
+set de desarrollo.
 
 * El clasificador escogido para la competencia (Random Forest sin reducción de dimensionalidad).
 
