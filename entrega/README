@@ -1,0 +1,11 @@
+La entrega contiene el informe en PDF y la carpeta código organizada de la siguiente manera:
+
+* La carpeta raw_features contiene los archivos correspondientes al entrenamiento de los clasificadores sin reducción de dimensionalidad, sobre el set de desarrollo.
+
+* La carpeta select_features contiene los archivos correspondientes al entrenamiento de los clasificadores con reducción de dimensionalidad (usando K-Best y PCA), sobre el set de desarrollo.
+
+* La carpeta test contiene los archivos correspondientes a la evaluación de los clasificadores obtenidos sobre el set de test.
+
+* El clasificador escogido para la competencia (Random Forest sin reducción de dimensionalidad).
+
+* Varios archivos de utilidades: extracción de features y vocabulario, scripts para gráficos, un splitter para separar el json original en un set de desarrollo y otro de test, etc.  
