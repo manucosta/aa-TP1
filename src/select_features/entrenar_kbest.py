@@ -8,7 +8,9 @@ from sklearn import svm
 from sklearn import ensemble
 from sklearn.grid_search import GridSearchCV
 from sklearn.metrics import fbeta_score, make_scorer
+from sklearn.feature_selection import SelectKBest, chi2
 import pickle
+import sys
 
 # Leo los mails (poner los paths correctos).
 ham_txt= json.load(open('../../dataset_json/ham_dev.json'))
@@ -47,13 +49,24 @@ print "Arme matriz"
 X = hstack([HTML, SUBJ, LEN, SPACES, word_freq_matrix]).toarray()
 y = df['class']
 
+# Selecciono atributos de forma univariada
+select = SelectKBest(score_func=chi2, k=100)
+X = select.fit_transform(X, y)
+print select.get_support(indices=True)
+outfile = open('mask.txt', 'w')
+filtro = select.get_support(indices=True)
+for n in filtro:
+  outfile.write(str(n))
+  outfile.write('\n')
+outfile.close()
+sys.exit(0)
 # Definimos F-Beta score con Beta=0.5
 # (favorecemos precision sobre recall)
 f05_scorer = make_scorer(fbeta_score, beta=0.5)
 
 print "Defino clasificadores"
+
 # Decision Tree
-'''
 print "Decision Tree"
 clf = DecisionTreeClassifier(max_features = None, max_leaf_nodes = 100, min_samples_split = 2, criterion = 'gini')
 kf = KFold(72000, n_folds=10, shuffle=True)
@@ -69,7 +82,7 @@ for train_index, test_index in kf:
     best_clf = clf
     best_score = score
 
-fout = open('dectree.pickle','w')
+fout = open('kbest-dectree.pickle','w')
 pickle.dump(best_clf,fout)
 fout.close()
 
@@ -90,7 +103,7 @@ for train_index, test_index in kf:
     best_clf = clf
     best_score = score
 
-fout = open('ranfor.pickle','w')
+fout = open('kbest-ranfor.pickle','w')
 pickle.dump(clf,fout)
 fout.close()
 '''
@@ -111,7 +124,7 @@ for train_index, test_index in kf:
     best_clf = clf
     best_score = score
 
-fout = open('svm.pickle','w')
+fout = open('kbest-svm.pickle','w')
 pickle.dump(clf,fout)
 fout.close()
 '''
@@ -132,7 +145,7 @@ for train_index, test_index in kf:
     best_clf = clf
     best_score = score
 
-fout = open('gaussianNB.pickle','w')
+fout = open('kbest-gaussianNB.pickle','w')
 pickle.dump(clf,fout)
 fout.close()
 
@@ -153,7 +166,7 @@ for train_index, test_index in kf:
     best_clf = clf
     best_score = score
 
-fout = open('multinomialNB.pickle','w')
+fout = open('kbest-multinomialNB.pickle','w')
 pickle.dump(clf,fout)
 fout.close()
 
@@ -174,7 +187,7 @@ for train_index, test_index in kf:
     best_clf = clf
     best_score = score
 
-fout = open('bernoulliNB.pickle','w')
+fout = open('kbest-bernoulliNB.pickle','w')
 pickle.dump(clf,fout)
 fout.close()
 
@@ -195,7 +208,6 @@ for train_index, test_index in kf:
     best_clf = clf
     best_score = score
 
-fout = open('knn.pickle','w')
+fout = open('kbest-knn.pickle','w')
 pickle.dump(clf,fout)
 fout.close()
-'''
